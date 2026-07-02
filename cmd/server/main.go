@@ -45,15 +45,13 @@ func main() {
 		panic(`"failed to migrate database", "error", ${err}`)
 	}
 	fmt.Println("Connected to the database successfully!")
-	userRepo := user.NewUserRepository(db)
-	userService := user.NewUserService(userRepo)
-	userHandler := user.NewUserHandler(userService)
+	
 
 	e.GET("/", func(c *echo.Context) error {
 		return c.JSON(http.StatusOK, "Hello World ")
 	})
 
-	e.POST("/user", userHandler.CreateUser)
+	user.RegisterRoute(e, db)
 	
 
 
