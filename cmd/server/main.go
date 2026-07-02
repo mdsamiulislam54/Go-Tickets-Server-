@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v5"
-	"gotickets/internal/model"
 	"gotickets/internal/user"
 	"net/http"
 	"os"
-	"gotickets/internal/user"
 	// "github.com/labstack/echo/v5/middleware"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -42,7 +40,7 @@ func main() {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	err = db.AutoMigrate(model.User{})
+	err = db.AutoMigrate(user.UserDTO{})
 	if err != nil {
 		panic(`"failed to migrate database", "error", ${err}`)
 	}

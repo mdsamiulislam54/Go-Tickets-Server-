@@ -16,20 +16,19 @@ func (s *service) CreateUser(req *dto.CreateUserRequest) (*dto.Response, error) 
 	user := UserDTO{
 		Name:     req.Name,
 		Email:    req.Email,
-		Password: req.Password,
+		Password: req.Password, 
 	}
-	err := s.repo.CreateUser(&user)
-	if err != nil {
+
+	if err := s.repo.CreateUser(&user); err != nil {
 		return nil, err
 	}
 
-	response := &dto.Response{
+	return &dto.Response{
 		Message: "User created successfully",
-		Data: UserDTO{
+		Data: &dto.UserResponse{
+			ID:    user.ID,
 			Name:  user.Name,
 			Email: user.Email,
 		},
-	}
-
-	return response, nil
+	}, nil
 }

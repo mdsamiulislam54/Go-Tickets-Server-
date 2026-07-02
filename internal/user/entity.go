@@ -1,7 +1,10 @@
 package user
 
+import "gorm.io/gorm"
+
 type UserDTO struct {
-	Name     string `json:"name" validate:"required"`
+	gorm.Model
+	Name     string `json:"name" validate:"required" `
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=6"`
 }
