@@ -18,7 +18,19 @@ func NewUserHandler(service *service) *handler {
 	}
 }
 
+func (h *handler) GetAllUser(c *echo.Context) error {
 
+	 response, err := h.service.GetAllUser()
+	 if err != nil {
+		 return c.JSON(http.StatusInternalServerError, httpresponse.ErrorResponse{
+			 Code:    http.StatusInternalServerError,
+			 Message: "Failed to retrieved  user data",
+			 Details: err.Error(),
+		 })
+	 }
+
+	 return c.JSON(http.StatusCreated, response)
+}
 func (h *handler) loginUser(c *echo.Context) error {
 	var req dto.LoginUserRequest
 

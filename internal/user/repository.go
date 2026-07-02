@@ -2,8 +2,6 @@ package user
 
 import (
 	"errors"
-	"fmt"
-
 	"gorm.io/gorm"
 )
 
@@ -12,7 +10,7 @@ var ErrUserAlreadyExists = errors.New("user with this email already exists")
 type UserRepository interface {
 	CreateUser(user *UserDTO) error
 	GetUserByEmail(email string) (*UserDTO, error)
-	// GetAllUsers() ([]UserDTO, error)
+	GetAllUsers() ([]UserDTO, error)
 	// GetUserByID(id uint) (*UserDTO, error)
 	// DeleteUser(id uint) error
 }
@@ -30,7 +28,6 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 func (r *repository) GetUserByEmail(email string) (*UserDTO, error) {
 	var user UserDTO
 	result := r.db.Where(&UserDTO{Email:email}).First(&user);
-	fmt.Println("Result::::::::::::::", &result)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -48,4 +45,13 @@ func (r *repository) CreateUser(user *UserDTO) error {
 	}
 
 	return nil
+}
+
+func (r *repository) GetAllUsers() ([]UserDTO, error) {
+	var user []UserDTO
+	result := r.db.Find(&user);
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return user, nil
 }
