@@ -5,20 +5,17 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v5"
 	"gotickets/internal/model"
+	"gotickets/internal/user"
 	"net/http"
 	"os"
-
+	"gotickets/internal/user"
 	// "github.com/labstack/echo/v5/middleware"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-type UserDTO struct {
-	Name     string `json:"name" validate:"required"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=6"`
-}
+
 
 type CustomValidator struct {
 	validator *validator.Validate
@@ -50,97 +47,18 @@ func main() {
 		panic(`"failed to migrate database", "error", ${err}`)
 	}
 	fmt.Println("Connected to the database successfully!")
+	userRepo := user.NewUserRepository(db)
+	userService := user.NewUserService(userRepo)
+	userHandler := user.NewUserHandler(userService)
+
 	e.GET("/", func(c *echo.Context) error {
-		return c.JSON(http.StatusOK, "Hello World New")
-	})
-	e.GET("/users", func(c *echo.Context) error {
-		var users []model.User
-		if err := db.Find(&users).Error; err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]any{
-				"error":   err.Error(),
-				"message": "Failed to get user",
-			})
-		}
-		return c.JSON(http.StatusOK, map[string]any{
-			"message": "Get all users",
-			"data":    users,
-		})
-	})
-	e.GET("/users/:id", func(c *echo.Context) error {
-		var user model.User
-		if err := db.First(&user, c.Param("id")).Error; err != nil {
-			return c.JSON(http.StatusNotFound, map[string]any{
-				"error":   err.Error(),
-				"message": "User not found",
-			})
-		}
-		return c.JSON(http.StatusOK, map[string]any{
-			"message": "Get user by ID",
-			"data":    user,
-		})
+		return c.JSON(http.StatusOK, "Hello World ")
 	})
 
-	e.DELETE("/users/:id", func(c *echo.Context) error {
-		var user model.User
-		if err := db.Delete(&user, c.Param("id")).Error; err != nil {
-			return c.JSON(http.StatusNotFound, map[string]any{
-				"error":   err.Error(),
-				"message": "User not found",
-			})
-		}
-		return c.JSON(http.StatusOK, map[string]any{
-			"message": "User deleted successfully",
-			"data":    user,
-		})
-	})
+	e.POST("/user", userHandler.CreateUser)
+	
 
-	e.POST("/users", func(c *echo.Context) error {
-		dto := new(UserDTO)
-		if err := c.Bind(dto); err != nil {
-			return c.String(http.StatusBadRequest, "bad request")
-		}
 
-		if err := c.Validate(dto); err != nil {
-
-			validationErrors := make(map[string]string)
-
-			if errs, ok := err.(validator.ValidationErrors); ok {
-				for _, e := range errs {
-					fmt.Println("Validation error:", e.Field(), e.Tag(), e.Param())
-					switch e.Tag() {
-					case "required":
-						validationErrors[e.Field()] = e.Field() + " is required"
-					case "email":
-						validationErrors[e.Field()] = "Invalid email address"
-					case "min":
-						validationErrors[e.Field()] = e.Field() + " must be at least " + e.Param() + " characters"
-					default:
-						validationErrors[e.Field()] = "Invalid value"
-					}
-				}
-			}
-
-			return c.JSON(http.StatusBadRequest, map[string]any{
-				"error":   err.Error(),
-				"message": validationErrors,
-			})
-		}
-
-		user := model.User{
-			Name:     dto.Name,
-			Email:    dto.Email,
-			Password: dto.Password,
-		}
-		// save user to database or perform other operations here
-		if err := db.Create(&user).Error; err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]any{
-				"error":   err.Error(),
-				"message": "Failed to create user",
-			})
-		}
-
-		return c.JSON(http.StatusOK, user)
-	})
 
 	if err := e.Start(":8080"); err != nil {
 		e.Logger.Error("failed to start server", "error", err)
