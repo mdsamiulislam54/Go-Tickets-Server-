@@ -1,6 +1,12 @@
 package user
 
-import "gotickets/internal/user/dto"
+import (
+	"errors"
+	"fmt"
+	"gotickets/internal/user/dto"
+)
+
+var userCredentialError = errors.New("Invalid User Credential")
 
 type service struct {
 	repo UserRepository
@@ -12,12 +18,38 @@ func NewUserService(repo UserRepository) *service {
 	}
 }
 
+func (s *service) LoginUser(req dto.LoginUserRequest) (*dto.Response, error) {
+
+	user, err := s.repo.GetUserByEmail(req.Email)
+	if err != nil {
+		fmt.Println("Database Error:", err)
+		return nil, err
+	}
+
+	fmt.Println("========== LOGIN DEBUG ==========")
+	fmt.Println("Email:", req.Email)
+	fmt.Println("Request Password:", req.Password)
+	fmt.Println("DB Password:", user.Password)
+
+	user.checkPassword(req.Password)
+	fmt.Println("Password Matched Successfully!")
+
+	return &dto.Response{
+		Message: "User Logging successfully",
+		Data: &dto.UserResponse{
+			ID:    user.ID,
+			Name:  user.Name,
+			Email: user.Email,
+		},
+	}, nil
+}
 func (s *service) CreateUser(req *dto.CreateUserRequest) (*dto.Response, error) {
 	user := UserDTO{
-		Name:     req.Name,
-		Email:    req.Email,
-		Password: req.Password, 
+		Name:  req.Name,
+		Email: req.Email,
 	}
+	user.HashPassword(); 
+
 
 	if err := s.repo.CreateUser(&user); err != nil {
 		return nil, err

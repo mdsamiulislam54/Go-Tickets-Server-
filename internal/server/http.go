@@ -22,7 +22,8 @@ func (cv *CustomValidator) Validate(i any) error {
 
 	return nil
 }
-func StartServer(e *echo.Echo, db *gorm.DB, cfg *config.Config) {
+func StartServer( db *gorm.DB, cfg *config.Config) {
+	e :=echo.New()
 	e.Validator = &CustomValidator{validator: *validator.New()}
 	err := db.AutoMigrate(user.UserDTO{})
 	if err != nil {
@@ -35,4 +36,9 @@ func StartServer(e *echo.Echo, db *gorm.DB, cfg *config.Config) {
 	})
 
 	user.RegisterRoute(e, db)
+
+	
+	if err := e.Start(":" + cfg.Port); err != nil {
+		e.Logger.Error("failed to start server", "error", err)
+	}
 }
