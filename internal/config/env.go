@@ -9,8 +9,8 @@ import (
 type Config struct {
 	DatabaseURL string
 	Port        string
+	JwtSecret string
 }
-
 func LoadEnv() (*Config) {
 	if err := godotenv.Load(); err != nil {
 		return nil
@@ -18,6 +18,7 @@ func LoadEnv() (*Config) {
 	return &Config{
 		DatabaseURL: os.Getenv("DATABASE_URL"),
 		Port:        os.Getenv("PORT"),
+		JwtSecret : os.Getenv("JWT_SECRET"),
 	}
 }
 

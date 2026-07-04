@@ -3,18 +3,20 @@ package user
 import (
 	"errors"
 	"fmt"
+	"gotickets/internal/auth"
 	"gotickets/internal/user/dto"
 )
 
 var userCredentialError = errors.New("Invalid User Credential")
 
 type service struct {
-	repo UserRepository
+	repo       UserRepository
+	jwtService auth.JwtService
 }
 
-func NewUserService(repo UserRepository) *service {
+func NewUserService(repo UserRepository, jwtService auth.JwtService) *service {
 	return &service{
-		repo: repo,
+		repo, jwtService,
 	}
 }
 
@@ -26,24 +28,18 @@ func (s *service) LoginUser(req dto.LoginUserRequest) (*dto.Response, error) {
 		return nil, err
 	}
 
-	fmt.Println("========== LOGIN DEBUG ==========")
-	fmt.Println("Email:", req.Email)
-	fmt.Println("Request Password:", req.Password)
-	fmt.Println("DB Password:", user.Password)
-
 	user.checkPassword(req.Password)
-
-	// if err != nil {
-	// 	return nil, userCredentialError
-	// }
-
-	fmt.Println("Password Matched Successfully!")
+	token, err := s.jwtService.GenerateToken(user.ID, user.Name, user.Email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate token : %w", err)
+	}
 
 	return &dto.Response{
 		Message: "User Logging successfully",
-		Data: &dto.UserResponse{
-			ID:    user.ID,
-			Name:  user.Name,
+		Token: token,
+		Data:&dto.UserResponse{
+			ID: user.ID,
+			Name: user.Name,
 			Email: user.Email,
 		},
 	}, nil
@@ -84,6 +80,6 @@ func (s *service) GetAllUser() (*dto.Response, error) {
 	}
 	return &dto.Response{
 		Message: "User retrieved successfully",
-		Data: response,
+		Data:    response,
 	}, nil
 }

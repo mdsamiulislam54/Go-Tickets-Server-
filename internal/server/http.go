@@ -35,7 +35,7 @@ func StartServer( db *gorm.DB, cfg *config.Config) {
 		return c.JSON(http.StatusOK, "Hello World ")
 	})
 
-	user.RegisterRoute(e, db)
+	user.RegisterRoute(e, db,cfg)
 
 	
 	if err := e.Start(":" + cfg.Port); err != nil {

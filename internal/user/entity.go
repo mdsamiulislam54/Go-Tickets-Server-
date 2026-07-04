@@ -7,6 +7,7 @@ import (
 
 type UserDTO struct {
 	gorm.Model
+	Token string `json:"token"`
 	Name     string `json:"name" validate:"required" `
 	Email    string `json:"email" validate:"required,email" gorm:"unique"`
 	Password string `json:"password" validate:"required,min=6"`
